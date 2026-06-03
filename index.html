@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Advanced Functional QR URL Generator</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+        }
+
+        #url {
+            max-width: 1000px;
+            text-align: center;
+            word-break: break-all;
+            padding: 16px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #qrcode {
+            padding: 16px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            background: #111;
+            color: white;
+            font-size: 14px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .meta {
+            font-size: 13px;
+            color: #555;
+            text-align: center;
+            max-width: 900px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Advanced Functional QR URL Generator</h1>
+
+    <div id="url"></div>
+
+    <div id="qrcode"></div>
+
+    <div class="controls">
+        <button onclick="generateQR()">
+            Generate URL
+        </button>
+
+        <button onclick="openURL()">
+            Open URL
+        </button>
+
+        <button onclick="copyURL()">
+            Copy URL
+        </button>
+    </div>
+
+    <div class="meta">
+        Generates syntactically valid HTTPS URLs using realistic domain structures,
+        verified public domains, layered paths, query parameters, fragments,
+        tracking tokens, locale segments, API patterns, CDN patterns,
+        authentication endpoints, media endpoints, and enterprise naming conventions.
+    </div>
+
+    <script>
+        /*
+            ============================================================
+            CORE DATASETS
+            ============================================================
+        */
+
+        const protocols = [
+            "https://"
+        ];
+
+        const subdomains = [
+            "",
+            "www.",
+            "app.",
+            "api.",
+            "cdn.",
+            "m.",
+            "mobile.",
+            "auth.",
+            "secure.",
+            "login.",
+            "account.",
+            "portal.",
+            "media.",
+            "static.",
+            "files.",
+            "img.",
+            "video.",
+            "support.",
+            "docs.",
+            "developer.",
+            "status.",
+            "beta.",
+            "edge.",
+            "assets.",
+            "dashboard.",
+            "admin.",
+            "mail.",
+            "cloud.",
+            "download."
+        ];
+
+        /*
+            Real publicly reachable domains.
+            Avoid fake/random domains if functionality matters.
+        */
+
+        const domains = [
+            "google.com",
+            "youtube.com",
+            "github.com",
+            "wikipedia.org",
+            "microsoft.com",
+            "apple.com",
+            "amazon.com",
+            "reddit.com",
+            "mozilla.org",
+            "cloudflare.com",
+            "openai.com",
+            "discord.com",
+            "spotify.com",
+            "netflix.com",
+            "linkedin.com",
+            "instagram.com",
+            "facebook.com",
+            "x.com",
+            "stackoverflow.com",
+            "ubuntu.com",
+            "npmjs.com",
+            "nodejs.org",
+            "python.org",
+            "intel.com",
+            "amd.com",
+            "nvidia.com",
+            "docker.com",
+            "gitlab.com",
+            "vercel.com",
+            "digitalocean.com",
+            "dropbox.com",
+            "slack.com",
+            "zoom.us",
+            "cnn.com",
+            "bbc.com",
+            "nytimes.com",
+            "adobe.com",
+            "salesforce.com",
+            "oracle.com",
+            "ibm.com"
+        ];
+
+        const localeSegments = [
+            "",
+            "/en",
+            "/en-us",
+            "/us",
+            "/uk",
+            "/fr",
+            "/de",
+            "/es",
+            "/jp",
+            "/mobile"
+        ];
+
+        const basePaths = [
+            "",
+            "/about",
+            "/pricing",
+            "/features",
+            "/products",
+            "/solutions",
+            "/services",
+            "/enterprise",
+            "/business",
+            "/contact",
+            "/support",
+            "/help",
+            "/docs",
+            "/documentation",
+            "/developer",
+            "/developers",
+            "/api",
+            "/api/v1",
+            "/api/v2",
+            "/graphql",
+            "/download",
+            "/releases",
+            "/blog",
+            "/news",
+            "/careers",
+            "/jobs",
+            "/privacy",
+            "/terms",
+            "/security",
+            "/status",
+            "/roadmap",
+            "/community",
+            "/dashboard",
+            "/admin",
+            "/settings",
+            "/billing",
+            "/analytics",
+            "/reports",
+            "/search",
+            "/discover",
+            "/explore",
+            "/watch",
+            "/stream",
+            "/music",
+            "/videos",
+            "/photos",
+            "/images",
+            "/files",
+            "/assets",
+            "/media",
+            "/content",
+            "/cdn-cgi",
+            "/oauth",
+            "/oauth2",
+            "/auth",
+            "/login",
+            "/signup",
+            "/register",
+            "/reset-password",
+            "/verify",
+            "/invite",
+            "/checkout",
+            "/cart",
+            "/store",
+            "/shop",
+            "/marketplace"
+        ];
+
+        const nestedPaths = [
+            "",
+            "/index",
+            "/home",
+            "/overview",
+            "/overview.html",
+            "/index.html",
+            "/default",
+            "/main",
+            "/latest",
+            "/trending",
+            "/featured",
+            "/new",
+            "/popular",
+            "/recommended",
+            "/2026",
+            "/q2",
+            "/release-notes",
+            "/changelog",
+            "/documentation",
+            "/sdk",
+            "/cli",
+            "/web",
+            "/desktop",
+            "/ios",
+            "/android"
+        ];
+
+        const fragments = [
+            "",
+            "#top",
+            "#overview",
+            "#docs",
+            "#pricing",
+            "#download",
+            "#installation",
+            "#faq",
+            "#support",
+            "#api"
+        ];
+
+        /*
+            ============================================================
+            QUERY PARAMETER SYSTEM
+            ============================================================
+        */
+
+        const queryKeys = [
+            "id",
+            "ref",
+            "source",
+            "utm_source",
+            "utm_medium",
+            "utm_campaign",
+            "campaign",
+            "lang",
+            "theme",
+            "page",
+            "tab",
+            "view",
+            "mode",
+            "token",
+            "session",
+            "redirect",
+            "continue",
+            "next",
+            "v",
+            "version",
+            "build",
+            "feature",
+            "experiment",
+            "region"
+        ];
+
+        const queryValues = [
+            "qr",
+            "mobile",
+            "app",
+            "web",
+            "dashboard",
+            "docs",
+            "release",
+            "latest",
+            "beta",
+            "stable",
+            "production",
+            "dark",
+            "light",
+            "us",
+            "global",
+            "enterprise",
+            "free",
+            "premium",
+            "true",
+            "false",
+            "1",
+            "2",
+            "v2",
+            "v3"
+        ];
+
+        /*
+            ============================================================
+            HELPERS
+            ============================================================
+        */
+
+        function randomItem(array) {
+            return array[
+                Math.floor(Math.random() * array.length)
+            ];
+        }
+
+        function randomChance(probability) {
+            return Math.random() < probability;
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(
+                Math.random() * (max - min + 1)
+            ) + min;
+        }
+
+        function randomHex(length = 8) {
+            const chars = "abcdef0123456789";
+
+            let result = "";
+
+            for (let i = 0; i < length; i++) {
+                result += chars[
+                    Math.floor(Math.random() * chars.length)
+                ];
+            }
+
+            return result;
+        }
+
+        function randomAlphaNum(length = 12) {
+            const chars =
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+            let result = "";
+
+            for (let i = 0; i < length; i++) {
+                result += chars[
+                    Math.floor(Math.random() * chars.length)
+                ];
+            }
+
+            return result;
+        }
+
+        /*
+            ============================================================
+            URL CONSTRUCTION
+            ============================================================
+        */
+
+        function generateQueryString() {
+
+            if (!randomChance(0.7)) {
+                return "";
+            }
+
+            const paramCount = randomInt(1, 5);
+
+            const usedKeys = new Set();
+
+            const params = [];
+
+            for (let i = 0; i < paramCount; i++) {
+
+                let key;
+
+                do {
+                    key = randomItem(queryKeys);
+                } while (usedKeys.has(key));
+
+                usedKeys.add(key);
+
+                let value;
+
+                /*
+                    Smart value generation
+                */
+
+                switch (key) {
+
+                    case "id":
+                        value = randomInt(1000, 9999999);
+                        break;
+
+                    case "token":
+                    case "session":
+                        value = randomHex(32);
+                        break;
+
+                    case "redirect":
+                    case "continue":
+                    case "next":
+                        value = encodeURIComponent(
+                            "/dashboard"
+                        );
+                        break;
+
+                    case "version":
+                    case "v":
+                        value = "v" + randomInt(1, 5);
+                        break;
+
+                    default:
+                        value = randomItem(queryValues);
+                        break;
+                }
+
+                params.push(
+                    encodeURIComponent(key) +
+                    "=" +
+                    encodeURIComponent(value)
+                );
+            }
+
+            return "?" + params.join("&");
+        }
+
+        function generatePath() {
+
+            const locale = randomItem(localeSegments);
+
+            const base = randomItem(basePaths);
+
+            const nested = randomChance(0.5)
+                ? randomItem(nestedPaths)
+                : "";
+
+            return locale + base + nested;
+        }
+
+        function generateURL() {
+
+            const protocol =
+                randomItem(protocols);
+
+            const subdomain =
+                randomItem(subdomains);
+
+            const domain =
+                randomItem(domains);
+
+            const path =
+                generatePath();
+
+            const query =
+                generateQueryString();
+
+            const fragment =
+                randomChance(0.35)
+                    ? randomItem(fragments)
+                    : "";
+
+            return (
+                protocol +
+                subdomain +
+                domain +
+                path +
+                query +
+                fragment
+            );
+        }
+
+        /*
+            ============================================================
+            QR SYSTEM
+            ============================================================
+        */
+
+        let currentURL = "";
+
+        function generateQR() {
+
+            currentURL = generateURL();
+
+            const qrContainer =
+                document.getElementById("qrcode");
+
+            const urlDisplay =
+                document.getElementById("url");
+
+            qrContainer.innerHTML = "";
+
+            urlDisplay.textContent = currentURL;
+
+            new QRCode(qrContainer, {
+                text: currentURL,
+                width: 300,
+                height: 300
+            });
+        }
+
+        function openURL() {
+
+            if (!currentURL) return;
+
+            window.open(
+                currentURL,
+                "_blank",
+                "noopener,noreferrer"
+            );
+        }
+
+        async function copyURL() {
+
+            if (!currentURL) return;
+
+            try {
+
+                await navigator.clipboard.writeText(
+                    currentURL
+                );
+
+                alert("URL copied.");
+
+            } catch (err) {
+
+                alert("Clipboard copy failed.");
+            }
+        }
+
+        /*
+            ============================================================
+            INITIALIZE
+            ============================================================
+        */
+
+        generateQR();
+    </script>
+
+</body>
+</html>

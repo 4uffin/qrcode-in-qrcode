@@ -69,3 +69,13 @@ https://4uffin.github.io/qrcode-in-qrcode/
 ```
 
 At that point, scanning a QR code for the site opens a QR code generator capable of generating additional QR codes indefinitely.
+
+# Anyways...
+
+Interested in helping?
+
+[Contributing](CONTRIBUTING.md)
+
+For legal purposes...
+
+[LICENSE](LICENSE)
